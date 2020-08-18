@@ -58,11 +58,11 @@ content_weight = 1  # alpha
 style_weight = 1e6  # beta
 
 # for displaying the target image, intermittently
-show_every = 200
+show_every = 20
 
 # iteration hyperparameters
 optimizer = optim.Adam([target], lr=0.003)
-steps = 2000  # decide how many iterations to update your image (5000)
+steps = 20  # decide how many iterations to update your image (5000)
 
 for ii in range(1, steps+1):
 
