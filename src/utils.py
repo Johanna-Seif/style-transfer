@@ -68,6 +68,7 @@ def get_features(image, model, layers=None):
 
     features = {}
     x = image
+    # Extracting the wanted features for a given image
     # model._modules is a dictionary holding each module in the model
     for name, layer in model._modules.items():
         x = layer(x)
