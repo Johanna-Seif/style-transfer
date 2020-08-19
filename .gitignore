@@ -1,0 +1,6 @@
+# Ignore picture
+*.jpg
+*.png
+
+# Ignore pycache
+*__pycache__*
