@@ -6,16 +6,18 @@ import torch
 from torchvision import transforms
 
 
-def load_image(img_path, max_size=400, shape=None):
-    ''' Load in and transform an image, making sure the image
-       is <= 400 pixels in the x-y dims.'''
+def load_image(img_path, max_size, shape=None):
+    '''
+        Load and convert the image,
+        make sure that it is less than max_size pixels in the x-y dims,
+        resize and normalize it.
+    '''
     if "http" in img_path:
         response = requests.get(img_path)
         image = Image.open(BytesIO(response.content)).convert('RGB')
     else:
         image = Image.open(img_path).convert('RGB')
 
-    # large images will slow down processing
     if max(image.size) > max_size:
         size = max_size
     else:
@@ -30,7 +32,7 @@ def load_image(img_path, max_size=400, shape=None):
                         transforms.Normalize((0.485, 0.456, 0.406),
                                              (0.229, 0.224, 0.225))])
 
-    # discard the transparent, alpha channel (that's the :3) and add the batch dimension
+    # Image without the alpha channel.
     image = in_transform(image)[:3,:,:].unsqueeze(0)
 
     return image

@@ -5,48 +5,21 @@ import torch.optim as optim
 from torchvision import models
 # import requests
 
-from util import load_image, im_convert, get_features, gram_matrix
+from utils import load_image, im_convert, get_features, gram_matrix
 
-
-# Extracting and fixing features of pretrained VGG19
-vgg = models.vgg19(pretrained=True).features
-for param in vgg.parameters():
-    param.requires_grad_(False)  # Prevent any changes
-
-# Move the model to GPU, if available
-# TODO uncomment changing of device when running the training
-# TODO add it as an option with error gestion if gpu asked but not avalaible
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-# device = "cpu"
-print("The device used is: {}".format(device))
-vgg.to(device)
-
-# load in content and style image
-content = load_image('../images/janelle.png').to(device)
-# Resize style to match content, makes code easier
-style = load_image('../images/ben_passmore.jpg',
-                        shape=content.shape[-2:]).to(device)
-
-# # display the images
-# fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
-# # content and style ims side-by-side
-# ax1.imshow(im_convert(content))
-# ax2.imshow(im_convert(style))
-# plt.show()
-
-# get content and style features only once before training
-content_features = get_features(content, vgg)
-style_features = get_features(style, vgg)
-
-# calculate the gram matrices for each layer of our style representation
-style_grams = {layer: gram_matrix(style_features[layer]) for layer in style_features}
-
-# create a third "target" image and prep it for change
-# start off with the target as a copy of our *content* image
-target = content.clone().requires_grad_(True).to(device)
-
-# weights for each style layer
-# weighting earlier layers more will result in *larger* style artifacts
+# Here are the argument that will be parsed in task
+# TODO remove them
+device = "cpu"
+content_image_path = '../images/janelle.png'
+style_image_path = '../images/ben_passmore.jpg'
+output_image_path = './images'
+max_size = 400
+content_weight = 1  # alpha in 2016 article
+style_weight = 1e6  # beta in  2016 article
+steps = 5
+show_every = 5  # for displaying the target image, intermittently
+# Weights for each style layer
+# Weighting earlier layers more will result in *larger* style artifacts
 # notice we are excluding `conv4_2` our content representation
 style_weights = {'conv1_1': 1.,
                  'conv2_1': 0.75,
@@ -54,15 +27,42 @@ style_weights = {'conv1_1': 1.,
                  'conv4_1': 0.2,
                  'conv5_1': 0.2}
 
-content_weight = 1  # alpha
-style_weight = 1e6  # beta
 
-# for displaying the target image, intermittently
-show_every = 20
+
+# Extracting and fixing features of pretrained VGG19
+vgg = models.vgg19(pretrained=True).features
+# Preventing any change on the weights of the original model
+for param in vgg.parameters():
+    param.requires_grad_(False)
+
+# Move the model to the device requested
+try:
+    device = torch.device(device)
+    # TODO take off this print
+    print("The device used is: {}".format(device))
+except:
+    print("Error, the required device is not available")
+vgg.to(device)
+
+# Load in content and style image
+content = load_image(content_image_path, max_size).to(device)
+# Resize style to match content, makes code easier
+style = load_image(style_image_path, max_size,
+                        shape=content.shape[-2:]).to(device)
+
+# Content and style features before training
+content_features = get_features(content, vgg)
+style_features = get_features(style, vgg)
+
+# Gram matrices for each layer of our style representation
+style_grams = {layer: gram_matrix(style_features[layer]) for layer in style_features}
+
+# create a third "target" image and prep it for change
+# start off with the target as a copy of our *content* image
+target = content.clone().requires_grad_(True).to(device)
 
 # iteration hyperparameters
 optimizer = optim.Adam([target], lr=0.003)
-steps = 20  # decide how many iterations to update your image (5000)
 
 for ii in range(1, steps+1):
 
@@ -101,6 +101,13 @@ for ii in range(1, steps+1):
         print('Total loss: ', total_loss.item())
         plt.imshow(im_convert(target))
         plt.show()
+
+# # display the images
+# fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(20, 10))
+# # content and style ims side-by-side
+# ax1.imshow(im_convert(content))
+# ax2.imshow(im_convert(style))
+# plt.show()
 
 # TODO write image
 # breakpoint()
