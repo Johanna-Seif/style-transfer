@@ -33,22 +33,24 @@ def load_image(img_path, max_size, shape=None):
                                              (0.229, 0.224, 0.225))])
 
     # Image without the alpha channel.
-    image = in_transform(image)[:3,:,:].unsqueeze(0)
+    image = in_transform(image)[:3, :, :].unsqueeze(0)
 
     return image
 
-# helper function for un-normalizing an image
-# and converting it from a Tensor image to a NumPy image for display
+
+# Helper function for un-normalizing an image
+# And converting it from a Tensor image to a NumPy image for display
 def im_convert(tensor):
     """ Display a tensor as an image. """
-
     image = tensor.to("cpu").clone().detach()
     image = image.numpy().squeeze()
-    image = image.transpose(1,2,0)
-    image = image * np.array((0.229, 0.224, 0.225)) + np.array((0.485, 0.456, 0.406))
+    image = image.transpose(1, 2, 0)
+    image = (image * np.array((0.229, 0.224, 0.225))
+             + np.array((0.485, 0.456, 0.406)))
     image = image.clip(0, 1)
 
     return image
+
 
 def get_features(image, model, layers=None):
     """
@@ -57,13 +59,13 @@ def get_features(image, model, layers=None):
         Default layers are for VGGNet matching Gatys et al (2016)
     """
 
-    ## Need the layers for the content and style representations of an image
+    # Need the layers for the content and style representations of an image
     if layers is None:
         layers = {'0': 'conv1_1',
                   '5': 'conv2_1',
                   '10': 'conv3_1',
                   '19': 'conv4_1',
-                  '21': 'conv4_2',  ## content representation
+                  '21': 'conv4_2',  # content representation
                   '28': 'conv5_1'}
 
     features = {}
@@ -77,14 +79,15 @@ def get_features(image, model, layers=None):
 
     return features
 
+
 def gram_matrix(tensor):
     """
         Calculate the Gram Matrix of a given tensor
     """
-    # get the batch_size, depth, height, and width of the Tensor
+    # Get the batch_size, depth, height, and width of the Tensor
     _, d, h, w = tensor.size()
-    # reshape so we're multiplying the features for each channel
+    # Reshape so we're multiplying the features for each channel
     tensor = tensor.view(d, h * w)
-    # calculate the gram matrix
+    # Calculate the gram matrix
     gram = torch.mm(tensor, tensor.t())
     return gram
