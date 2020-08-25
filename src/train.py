@@ -21,6 +21,7 @@ def style_transfer(device, content_image_path, style_image_path,
         param.requires_grad_(False)
 
     # Move the model to the device requested
+    torch.cuda.empty_cache()
     try:
         device = torch.device(device)
         print("The device used is: {}".format(device))

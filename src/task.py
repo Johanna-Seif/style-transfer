@@ -36,14 +36,14 @@ def argument_parser():
     parser.add_argument(
         '--show_every', metavar='SHOW_EVERY',
         type=int,
-        help='Display the target image every SHOW_EVERY steps. Optional.')
+        help='Save the target image every SHOW_EVERY steps. Optional.')
     parser.add_argument(
         '--content_weight', metavar='CONTENT_WEIGHT',
         type=int, default=1,
         help='Content image weight. Default 1.')
     parser.add_argument(
         '--style_weight', metavar='STYLE_WEIGHT',
-        type=int, default=1e3,
+        type=float, default=1e3,
         help='Style image weight. Default 1e3.')
     parser.add_argument(
         '--conv1_1', metavar='CONV1_1',
